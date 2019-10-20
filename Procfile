@@ -1,1 +1,1 @@
-web: java -jar target/movie-questionnaire-0.0.1-SNAPSHOT.jar
+web: java -jar -Dserver.port=$PORT target/movie-questionnaire-0.0.1-SNAPSHOT.jar
