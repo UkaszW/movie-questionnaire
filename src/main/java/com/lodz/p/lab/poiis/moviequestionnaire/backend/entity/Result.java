@@ -15,10 +15,10 @@ public class Result {
     @GeneratedValue(strategy = GenerationType.TABLE)
     private Long id;
 
-    private Long movieId;
+    private final Long movieId;
 
-    private Long personId;
+    private final String personId;
 
-    private Long Evaluation;
+    private final Integer evaluation;
 
 }
