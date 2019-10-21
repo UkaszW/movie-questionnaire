@@ -47,7 +47,7 @@ public class MainView extends VerticalLayout {
 
         StringBuilder builder = new StringBuilder("Rate every movie from 0 to 5 if you have seen it.\n");
         builder.append("If not, choose \'Not Seen\' option.\n");
-        builder.append("The Questionnaire takes circa 15-20 minutes\n");
+        builder.append("The Questionnaire takes circa 15-20 minutes.\n");
         builder.append("If you are ready, click the button below.\n");
         builder.append("Thank you in advance.");
         Label surveyDesc = new Label(builder.toString());
