@@ -43,7 +43,13 @@ public class MainView extends VerticalLayout {
 
         List<Input> inputs = CsvInputUtils.read(MOVIE_CSV_PATH);
 
-        Label startLabel = new Label("Welcome to unforgetable journey ;) Please rate every movie carefully.");
+        Label startLabel = new Label("Welcome to unforgetable journey ;) Please rate every movie carefully.\n");
+
+        StringBuilder builder = new StringBuilder("Rate every movie from 0 to 5 if you have seen it.\n");
+        builder.append("If not, choose \'Not Seen\' option.\n");
+        builder.append("The Questionnaire takes circa 15-20 minutes\n");
+        builder.append("If you are ready, click the button below.\n");
+        builder.append("Thank you in advance.");
         Button startedBtn = new Button("Get Started", buttonClickEvent -> {
             renderNext(inputs.iterator(), personId);
         });
@@ -52,9 +58,8 @@ public class MainView extends VerticalLayout {
     }
 
     private void renderNext(Iterator<Input> iterator, String personId) {
+        removeAll();
         if (iterator.hasNext()) {
-            removeAll();
-
             Input input = iterator.next();
             var id = input.getId();
             var tmdbId = input.getTmdbId();
@@ -73,11 +78,13 @@ public class MainView extends VerticalLayout {
 
                 Optional.ofNullable(response.getBody()).ifPresentOrElse(it -> {
                     JsonObject jsonObject = new JsonParser().parse(response.getBody()).getAsJsonObject();
-                    JsonElement jsonElement = jsonObject.get("poster_path");
+                    JsonElement posterPath = jsonObject.get("poster_path");
+                    JsonElement description = jsonObject.get("overview");
 
-                    Image image = new Image(POSTER_PRE_URL + jsonElement.getAsString(), "Poster");
-                    add(image);
-                }, () -> new Label("Upps.. Poster service not available!"));
+                    Image image = new Image(POSTER_PRE_URL + posterPath.getAsString(), "Poster");
+                    Label desc = new Label(description.getAsString());
+                    add(image, desc);
+                }, () -> new Label("Upps.. TMDB service not available!"));
 
                 RadioButtonGroup<String> group = new RadioButtonGroup<>();
                 group.setLabel("How do you rate me?");
