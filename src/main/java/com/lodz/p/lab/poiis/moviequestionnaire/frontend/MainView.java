@@ -50,11 +50,10 @@ public class MainView extends VerticalLayout {
         builder.append("The Questionnaire takes circa 15-20 minutes\n");
         builder.append("If you are ready, click the button below.\n");
         builder.append("Thank you in advance.");
-        Button startedBtn = new Button("Get Started", buttonClickEvent -> {
-            renderNext(inputs.iterator(), personId);
-        });
+        Label surveyDesc = new Label(builder.toString());
+        Button startedBtn = new Button("Get Started", buttonClickEvent -> renderNext(inputs.iterator(), personId));
         startedBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        add(startLabel, startedBtn);
+        add(startLabel, surveyDesc, startedBtn);
     }
 
     private void renderNext(Iterator<Input> iterator, String personId) {
