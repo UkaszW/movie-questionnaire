@@ -16,8 +16,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <vaadin.version>14.0.0</vaadin.version>
-        <vaadin.productionMode>true</vaadin.productionMode>
+        <vaadin.version>14.0.1</vaadin.version>
     </properties>
 
     <dependencies>
@@ -32,10 +31,6 @@
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>flow-server-production-mode</artifactId>
         </dependency>
 
         <dependency>
