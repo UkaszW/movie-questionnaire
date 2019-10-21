@@ -8,6 +8,7 @@ import com.lodz.p.lab.poiis.moviequestionnaire.backend.entity.Input;
 import com.lodz.p.lab.poiis.moviequestionnaire.backend.entity.Result;
 import com.lodz.p.lab.poiis.moviequestionnaire.backend.repository.ResultRepository;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -21,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -40,7 +42,13 @@ public class MainView extends VerticalLayout {
         String personId = RandomStringUtils.random(10, true, true);
 
         List<Input> inputs = CsvInputUtils.read(MOVIE_CSV_PATH);
-        renderNext(inputs.iterator(), personId);
+
+        Label startLabel = new Label("Welcome to unforgetable journey ;) Please rate every movie carefully.");
+        Button startedBtn = new Button("Get Started", buttonClickEvent -> {
+            renderNext(inputs.iterator(), personId);
+        });
+        startedBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        add(startLabel, startedBtn);
     }
 
     private void renderNext(Iterator<Input> iterator, String personId) {
@@ -58,7 +66,7 @@ public class MainView extends VerticalLayout {
                 RestTemplate restTemplate = new RestTemplate();
                 ResponseEntity<String> response = restTemplate.getForEntity(requestUrl, String.class);
 
-                Label idLabel = new Label("ID: " + id);
+                Label idLabel = new Label("ID: " + id + "/200");
                 Label titleLabel = new Label("Title: " + title);
 
                 add(idLabel, titleLabel);
@@ -92,8 +100,8 @@ public class MainView extends VerticalLayout {
     }
 
     private void saveResult(Iterator<Input> iterator, String personId, Long id, RadioButtonGroup<String> group) {
-        Integer evaluate = group.getValue().isEmpty() || !NOT_SEEN.equals(group.getValue())
-                ? Integer.parseInt(group.getValue()) : null;
+        Integer evaluate = Objects.isNull(group.getValue()) || NOT_SEEN.equals(group.getValue())
+                ? null : Integer.parseInt(group.getValue());
         Result result = new Result(id, personId, evaluate);
         saveRate(result);
     }
