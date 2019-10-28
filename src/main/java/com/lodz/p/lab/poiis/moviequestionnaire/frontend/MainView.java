@@ -13,6 +13,7 @@ import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.Route;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -31,7 +32,9 @@ public class MainView extends VerticalLayout {
 
     private static final String MOVIE_CSV_PATH = "./src/main/resources/static/movies.csv";
     private static final String TMDB_URL = "https://api.themoviedb.org/3/movie/";
-    private static final String API_KEY = "?api_key=3b06cc2e3d595ab056a5c1846175d9a8&language=en-US";
+    private static final String API_KEY = "?api_key=3b06cc2e3d595ab056a5c1846175d9a8";
+    private static final String PL = "&language=pl-PL";
+    private static final String EN = "&language=en-US";
     private static final String POSTER_PRE_URL = "http://image.tmdb.org/t/p/w185/";
     private static final String NOT_SEEN = "Not Seen";
 
@@ -39,46 +42,73 @@ public class MainView extends VerticalLayout {
     private ResultRepository resultRepository;
 
     public MainView() {
+        Label welcomeLabel = new Label("Welcome!");
+
+        Select<String> language = new Select<>();
+        language.setLabel("Choose language");
+        language.setItems("English", "Polish");
+        language.addValueChangeListener(event -> renderStartPage(event.getValue()));
+        add(welcomeLabel, language);
+    }
+
+    private void renderStartPage(String language) {
+        removeAll();
         String personId = RandomStringUtils.random(10, true, true);
 
         List<Input> inputs = CsvInputUtils.read(MOVIE_CSV_PATH);
 
-        Label startLabel = new Label("Welcome to unforgetable journey ;) Please rate every movie carefully.\n");
+        Label startLabelPl = new Label("Zapraszamy do niezapomnianej przygody. Proszimy oceniaj uważnie.\n");
+        Label startLabelEng = new Label("Welcome to unforgetable journey ;) Please rate every movie carefully.\n");
 
-        StringBuilder builder = new StringBuilder("Rate every movie from 0 to 5 if you have seen it.\n");
-        builder.append("If not, choose \'Not Seen\' option.\n");
-        builder.append("The Questionnaire takes circa 15-20 minutes.\n");
-        builder.append("If you are ready, click the button below.\n");
-        builder.append("Thank you in advance.");
-        Label surveyDesc = new Label(builder.toString());
-        Button startedBtn = new Button("Get Started", buttonClickEvent -> renderNext(inputs.iterator(), personId));
-        startedBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        add(startLabel, surveyDesc, startedBtn);
+        String welcomeTxtPl = "Oceń każdy obejrzany film, od 0 do 5. Jeśli nie widzialeś/widziałaś danego filmu, wybierz opcje \'Nie widziałem/widziałam\' " +
+                "Ankieta potrwa około 15-20 minut. Jeśli jesteś gotowy naciśnij poniższy przycisk. " +
+                "Z góry dziękujemy.";
+
+        String welcomeTxtEng = "Rate every movie from 0 to 5 if you have seen it. If not, choose \'Not Seen\' option. " +
+                "The Questionnaire takes circa 15-20 minutes. If you are ready, click the button below. " +
+                "Thank you in advance.";
+
+        String startedEng = "Get Started";
+        String startedPl = "Zaczynamy";
+
+        if (language.equals("English")) {
+            Label surveyDesc = new Label(welcomeTxtEng);
+            Button startedBtn = new Button(startedEng, buttonClickEvent -> renderNext(inputs.iterator(), personId, language));
+            startedBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            add(startLabelEng, surveyDesc, startedBtn);
+        } else {
+            Label surveyDesc = new Label(welcomeTxtPl);
+            Button startedBtn = new Button(startedPl, buttonClickEvent -> renderNext(inputs.iterator(), personId, language));
+            startedBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            add(startLabelPl, surveyDesc, startedBtn);
+        }
+
     }
 
-    private void renderNext(Iterator<Input> iterator, String personId) {
+    private void renderNext(Iterator<Input> iterator, String personId, String language) {
         removeAll();
         if (iterator.hasNext()) {
             Input input = iterator.next();
             var id = input.getId();
             var tmdbId = input.getTmdbId();
-            var title = input.getTitle();
+            var languageVar = language.equals("English") ? EN : PL;
 
-            var requestUrl = TMDB_URL + tmdbId + API_KEY;
+            var requestUrl = TMDB_URL + tmdbId + API_KEY + languageVar;
 
             try {
                 RestTemplate restTemplate = new RestTemplate();
                 ResponseEntity<String> response = restTemplate.getForEntity(requestUrl, String.class);
 
-                Label idLabel = new Label("ID: " + id + "/200");
-                Label titleLabel = new Label("Title: " + title);
-
-                add(idLabel, titleLabel);
-
                 Optional.ofNullable(response.getBody()).ifPresentOrElse(it -> {
                     JsonObject jsonObject = new JsonParser().parse(response.getBody()).getAsJsonObject();
                     JsonElement posterPath = jsonObject.get("poster_path");
                     JsonElement description = jsonObject.get("overview");
+                    JsonElement title = jsonObject.get("title");
+
+                    String titleLabel2 = language.equals("English") ? "Title: " : "Tytuł: ";
+                    Label idLabel = new Label("ID: " + id + "/200");
+                    Label titleLabel = new Label(titleLabel2 + title);
+                    add(idLabel, titleLabel);
 
                     Image image = new Image(POSTER_PRE_URL + posterPath.getAsString(), "Poster");
                     Label desc = new Label(description.getAsString());
@@ -86,21 +116,22 @@ public class MainView extends VerticalLayout {
                 }, () -> new Label("Upps.. TMDB service not available!"));
 
                 RadioButtonGroup<String> group = new RadioButtonGroup<>();
-                group.setLabel("How do you rate me?");
-                group.setItems(NOT_SEEN, "0", "1", "2", "3", "4", "5");
-                add(group);
-
-                Button nextBtn = new Button("Next", buttonClickEvent -> {
+                String groupLabel = language.equals("English") ? "How do you rate me?" : "Jak mnie oceniasz?";
+                group.setLabel(groupLabel);
+                String notSeenTxt = language.equals("English") ? "Not Seen" : "Nie widziałem/widziałam";
+                group.setItems(notSeenTxt, "0", "1", "2", "3", "4", "5");
+                group.addValueChangeListener(event -> {
                     saveResult(iterator, personId, id, group);
-                    renderNext(iterator, personId);
+                    renderNext(iterator, personId, language);
                 });
-                add(nextBtn);
+                add(group);
             } catch (Exception e) {
                 add(new Label("Upps.. Something goes wrong! Please, try later."));
                 log.error("Exception occurred: ", e);
             }
         } else {
-            Label endLabel = new Label("Thank you for your time!");
+            String endLabelTxt = language.equals("English") ? "Thank you for your time!" : "Dziękujemy za poświęcony czas!";
+            Label endLabel = new Label(endLabelTxt);
             add(endLabel);
         }
     }
