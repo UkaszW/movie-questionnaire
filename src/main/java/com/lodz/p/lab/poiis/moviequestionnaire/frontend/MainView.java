@@ -137,7 +137,7 @@ public class MainView extends VerticalLayout {
     }
 
     private void saveResult(Iterator<Input> iterator, String personId, Long id, RadioButtonGroup<String> group) {
-        Integer evaluate = Objects.isNull(group.getValue()) || NOT_SEEN.equals(group.getValue())
+        Integer evaluate = Objects.isNull(group.getValue()) || "Not Seen".equals(group.getValue()) || "Nie widziałem/widziałam".equals(group.getValue())
                 ? null : Integer.parseInt(group.getValue());
         Result result = new Result(id, personId, evaluate);
         saveRate(result);
